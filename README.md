@@ -36,6 +36,20 @@ Source: `config/marketConfig.js`
 
 ![Trading Engine Architecture](docs/architecture.png)
 
+## Screenshots
+
+### Homepage
+
+![Homepage](docs/homepage.png)
+
+The main trading dashboard showing the order form, order book (bid/ask), trades history, and open orders panel.
+
+### Backend Logs
+
+![Backend Logs](docs/image1.png)
+
+Terminal logs showing successful order placement, matching, and trade execution with full request/response flow.
+
 ## Assumptions
 
 - Only **limit orders** are supported (no market orders).
