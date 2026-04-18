@@ -96,6 +96,14 @@ npm start
 Default server:
 - `http://localhost:3000`
 
+## Live Deployment
+
+The trading engine is deployed and live on Render:
+
+🚀 **https://trading-engine-7efm.onrender.com/**
+
+Access the trading dashboard directly from the link above. All API endpoints are operational.
+
 Health check:
 
 ```bash
