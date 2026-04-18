@@ -36,6 +36,85 @@ Source: `config/marketConfig.js`
 
 ![Trading Engine Architecture](docs/architecture.png)
 
+## Assumptions
+
+- Only **limit orders** are supported (no market orders).
+- The system uses an **in-memory order book** (no database).
+- Data is **not persistent** and resets on server restart.
+- Orders are processed **synchronously** (no concurrency handling).
+- Each order belongs to a **single trading pair** (e.g., BTC/USD).
+- No user authentication (orders are anonymous).
+- No fees, commissions, or slippage are considered.
+- Orders cannot be modified once placed (only cancel or execute).
+
+## Matching Logic
+
+The engine follows **price-time priority**:
+
+### Price Priority
+- Buy orders match with the **lowest sell price**
+- Sell orders match with the **highest buy price**
+
+### Time Priority (FIFO)
+- Orders at the same price level are matched in the order they were placed
+
+### Incoming Buy Order
+
+- Matches with sell orders where `sell.price <= buy.price`
+
+- Process:
+  1. Select lowest priced sell orders first
+  2. For same price, use FIFO
+  3. Continue until:
+     - Buy order is fully filled, or
+     - No matching sell orders remain
+
+### Incoming Sell Order
+
+- Matches with buy orders where `buy.price >= sell.price`
+
+- Process:
+  1. Select highest priced buy orders first
+  2. For same price, use FIFO
+  3. Continue until:
+     - Sell order is fully filled, or
+     - No matching buy orders remain
+
+### Trade Execution
+
+- Trade quantity = `min(buy.remaining, sell.remaining)`
+- Trade price = price of the resting order
+
+### Partial Fills
+
+- If quantities differ:
+  - Smaller order is fully filled and removed
+  - Larger order remains with updated quantity
+- Order status updates:
+  - `open` → `partially_filled` → `filled`
+
+### No Match
+
+- If no suitable match is found, the order remains in the order book as `open`
+
+## Example Matching Scenario
+
+Existing Sell Orders:
+- Sell 2 @ 100
+- Sell 5 @ 101
+
+Incoming Buy Order:
+- Buy 5 @ 101
+
+Matching:
+- Matches 2 @ 100
+- Matches 3 @ 101
+
+Result:
+- First sell order is fully filled and removed
+- Second sell order remains with quantity 2
+- Buy order is fully filled
+
 ### Data Flow
 
 1. **Order Placement**: Frontend sends POST /order → Backend validates → Matching Engine processes → Trade created if matched
